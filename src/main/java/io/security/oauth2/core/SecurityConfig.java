@@ -7,6 +7,7 @@ import org.springframework.security.web.SecurityFilterChain;
 /*
  * SecurityConfig (스프링 시큐리티 설정클래스)
  * (1) SecurityConfigurer를 커스텀한 클래스로 사용하여 커스텀한 기능의 인증 및 인가처리가 진행되도록 한다
+ * (2) 커스텀 설정에 의한 초기화 과정
  * */
 public class SecurityConfig {
 
@@ -17,10 +18,18 @@ public class SecurityConfig {
     * - apply() 메소드의 파라미터에 생성할 SecurityConfigurer 구현체를 주입
     * */
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain1(HttpSecurity http) throws Exception {
         http.authorizeRequests().anyRequest().authenticated();
         http.formLogin();
         http.apply(new CustomSecurityConfigurer().setFlag(true));
+
+        return http.build();
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain2(HttpSecurity http) throws Exception {
+        http.authorizeRequests().anyRequest().authenticated();
+        http.httpBasic();
 
         return http.build();
     }
