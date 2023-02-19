@@ -2,12 +2,20 @@ package io.security.oauth2.core;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /*
  * SecurityConfig (스프링 시큐리티 설정클래스)
  * (1) SecurityConfigurer를 커스텀한 클래스로 사용하여 커스텀한 기능의 인증 및 인가처리가 진행되도록 한다
  * (2) 커스텀 설정에 의한 초기화 과정
+ * (3) 커스텀 설정한 AuthenticationEntryPoint를 설정할 경우
  * */
 public class SecurityConfig {
 
@@ -18,18 +26,20 @@ public class SecurityConfig {
     * - apply() 메소드의 파라미터에 생성할 SecurityConfigurer 구현체를 주입
     * */
     @Bean
-    SecurityFilterChain securityFilterChain1(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests().anyRequest().authenticated();
         http.formLogin();
         http.apply(new CustomSecurityConfigurer().setFlag(true));
-
-        return http.build();
-    }
-
-    @Bean
-    SecurityFilterChain securityFilterChain2(HttpSecurity http) throws Exception {
-        http.authorizeRequests().anyRequest().authenticated();
-        http.httpBasic();
+        /*
+        * (3)
+        * - 익명 내부 클래스를 통해 AuthenticationEntryPoint의 구현체를 직접 커스텀하여 설정
+        * */
+        http.exceptionHandling().authenticationEntryPoint(new AuthenticationEntryPoint() {
+            @Override
+            public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+                System.out.println("cutom entryPoint..");
+            }
+        });
 
         return http.build();
     }
